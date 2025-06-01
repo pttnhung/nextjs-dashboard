@@ -40,9 +40,8 @@ export type State = {
 
 export async function updateInvoice(
   id: string,
-  prevState: State,
   formData: FormData,
-) {
+): Promise<void> {
   const validatedFields = UpdateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
@@ -50,10 +49,7 @@ export async function updateInvoice(
   });
  
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Missing Fields. Failed to Update Invoice.',
-    };
+    throw new Error('Missing Fields. Failed to Update Invoice.');
   }
  
   const { customerId, amount, status } = validatedFields.data;
@@ -66,12 +62,13 @@ export async function updateInvoice(
       WHERE id = ${id}
     `;
   } catch (error) {
-    return { message: 'Database Error: Failed to Update Invoice.' };
+    throw new Error('Database Error: Failed to Update Invoice.');
   }
  
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
 }
+
 export async function createInvoice(_state: void, formData: FormData) {
   const { customerId, amount, status } = CreateInvoice.parse({
     customerId: formData.get('customerId'),
@@ -94,7 +91,6 @@ export async function createInvoice(_state: void, formData: FormData) {
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
 }
-
 
 export async function deleteInvoice(id: string) {
   try {
