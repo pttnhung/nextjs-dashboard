@@ -15,13 +15,14 @@ export async function fetchRevenue() {
   try {
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
-
+    console.log('Fetching revenue data...');
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     // console.log('Fetching revenue data...');
     // await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const data = await sql<Revenue[]>`SELECT * FROM revenue`;
 
-    // console.log('Data fetch completed after 3 seconds.');
+    console.log('Data fetch completed after 3 seconds.');
 
     return data;
   } catch (error) {
@@ -54,7 +55,7 @@ export async function fetchCardData() {
   try {
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
-    // how to initialize multiple queries in parallel with JS.
+    // how to initialize multiple queries in parallel with JS.;
     const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
     const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
     const invoiceStatusPromise = sql`SELECT
@@ -154,18 +155,25 @@ export async function fetchInvoiceById(id: string) {
       WHERE invoices.id = ${id};
     `;
 
-    const invoice = data.map((invoice) => ({
-      ...invoice,
-      // Convert amount from cents to dollars
-      amount: invoice.amount / 100,
-    }));
+    if (data.length === 0) {
+      console.warn(`Invoice with id ${id} not found.`);
+      return null; // hoặc bạn có thể throw một lỗi nếu muốn
+    }
 
-    return invoice[0];
+    const invoice = {
+      ...data[0],
+      amount: data[0].amount / 100, // Convert cents to dollars
+    };
+
+    console.log('Fetched invoice:', invoice);
+
+    return invoice;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch invoice.');
   }
 }
+
 
 export async function fetchCustomers() {
   try {
